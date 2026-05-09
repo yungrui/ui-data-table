@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>data-table.js 元件功能展示</title>
+    <script src="data-table.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f8f9fa; color: #212529; line-height: 1.7; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 3rem 1rem; }
+        .card { --bs-card-border-color: #dee2e6; border: 1px solid var(--bs-card-border-color); border-radius: .375rem; background-color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,.05); margin-bottom: 2rem; }
+        .card-header { padding: 1rem 1rem; margin-bottom: 0; background-color: #f8f9fa; border-bottom: 1px solid var(--bs-card-border-color); font-size: 1.25rem; font-weight: 500; }
+        .card-body { padding: 1.5rem; }
+        .card-text { margin-bottom: 1rem; }
+        h1 { text-align: center; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem; margin-bottom: 2rem; }
+        .lead { font-size: 1.25rem; font-weight: 300; text-align: center; }
+        .alert { position: relative; padding: 1rem 1rem; margin-bottom: 1rem; border: 1px solid transparent; border-radius: .375rem; }
+        .alert-info { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background-color: #212529; color: #fff; padding: 1rem; border-radius: .25rem; overflow-x: auto; }
+        .btn { display: inline-block; font-weight: 400; color: #fff; text-align: center; vertical-align: middle; cursor: pointer; user-select: none; background-color: #0d6efd; border: 1px solid #0d6efd; padding: .375rem .75rem; font-size: 1rem; border-radius: .25rem; text-decoration: none; }
+        .btn-primary { color: #fff; background-color: #0d6efd; border-color: #0d6efd; }
+        .btn-danger { color: #fff; background-color: #dc3545; border-color: #dc3545; }
+        .mt-3 { margin-top: 1rem !important; }
+        /* Badge styles for render function */
+        .badge { display: inline-block; padding: .35em .65em; font-size: .75em; font-weight: 700; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: .25rem; }
+        .bg-success { background-color: #198754 !important; } .bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+        .table thead { background-color: #e9ecef; }
+        .table tbody tr:nth-of-type(odd) { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><code>data-table.js</code> 元件功能展示</h1>
+            <p class="lead">一個輕量、零依賴、功能豐富且可高度客製化的純 JavaScript Web Component 資料表格。它內建了類似 Bootstrap 5 的預設樣式，確保在任何專案中都能擁有專業的外觀。</p>
+        </header>
+
+        <main>
+            
+
+            <h2>API 總覽</h2>
+            <div class="card mb-4">
+                <div class="card-header">HTML Attributes (透過 <code>&lt;ui-data-table&gt;</code> 標籤設定)</div>
+                <div class="card-body">
+                    <p>這些屬性提供最直接的設定方式，適合在 HTML 中靜態定義表格行為。</p>
+                    <table class="table table-bordered">
+                        <thead><tr><th>屬性名稱</th><th>說明</th><th>預設值</th><th>範例</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>data-source-type</code></td>
+                                <td>
+                                    指定資料來源的類型。
+                                    <ul>
+                                        <li><code>local</code>：表示使用 <code>setData()</code> 傳入的本地陣列，所有排序、分頁、篩選都在前端處理。</li>
+                                        <li><code>server</code>：表示將啟用**完整的伺服器端處理**。所有的排序、分頁、篩選操作都會向 <code>fetch-data-url</code> 發送請求，並由伺服器處理。</li>
+                                    </ul>
+                                    <div class="alert alert-info mt-3">
+                                        <h4>伺服器端 API 請求參數 (<code>data-source-type="server"</code> 時)</h4>
+                                        當 <code>data-source-type</code> 為 <code>server</code> 時，元件會自動將以下參數合併到請求中：
+                                        <ul>
+                                            <li>**分頁**：
+                                                <ul>
+                                                    <li><code>_page</code>: 當前頁碼 (從 1 開始)。</li>
+                                                    <li><code>_limit</code>: 每頁顯示的資料筆數。</li>
+                                                </ul>
+                                            </li>
+                                            <li>**排序**：
+                                                <ul>
+                                                    <li><code>_sort</code>: 排序的欄位 (對應 <code>columns</code> 中的 <code>field</code>)。</li>
+                                                    <li><code>_order</code>: 排序順序 (<code>asc</code> 或 <code>desc</code>)。</li>
+                                                </ul>
+                                            </li>
+                                            <li>**篩選**：
+                                                <ul>
+                                                    <li>對於每個有值的篩選輸入框 (<code>data-filter-field="xxx"</code>)，會傳送對應的鍵值對。例如：<code>fieldName=filterValue</code>。</li>
+                                                </ul>
+                                            </li>
+                                            <li>**基礎請求資料**：您在 <code>setData</code> 方法中傳入的 <code>requestData</code> 會與上述參數合併。</li>
+                                        </ul>
+                                        <p>伺服器端 API **必須**在回應的 HTTP Headers 中包含 <code>X-Total-Count</code> 欄位，以告知元件總資料筆數，否則分頁將無法正常運作。</p>
+                                        <h4>伺服器端 API 回應內容 (<code>data-source-type="server"</code> 時)</h4>
+                                        <p>伺服器端 API應回傳一個 JSON 格式的陣列，其中包含當前頁面所顯示的資料。例如：</p>
+                                        <pre><code>[
+  { "id": 1, "name": "User 1", "email": "user1@example.com" },
+  { "id": 2, "name": "User 2", "email": "user2@example.com" }
+]</code></pre>
+                                    </div>
+                                </td>
+                                <td><code>local</code></td>
+                                <td><code>data-source-type="server"</code></td>
+                            </tr>
+                            <tr><td><code>fetch-data-url</code></td><td>當 <code>data-source-type="server"</code> 時，指定獲取資料的 API 端點或 JSON 檔案路徑。</td><td>空字串</td><td><code>fetch-data-url="http://localhost:3000/users"</code></td></tr>
+                            <tr><td><code>server-data-field</code></td><td>當 <code>data-source-type="server"</code> 且 API 回傳為物件時，指定資料陣列所在的欄位名稱。</td><td><code>data</code></td><td><code>server-data-field="items"</code></td></tr>
+                            <tr><td><code>server-total-field</code></td><td>當 <code>data-source-type="server"</code> 且 API 回傳為物件時，指定總筆數所在的欄位名稱。</td><td><code>totalCount</code></td><td><code>server-total-field="total"</code></td></tr>
+                            <tr><td><code>sort-field</code></td><td>指定表格初始載入時預設的排序欄位。需對應到 <code>columns</code> 中的一個 <code>field</code>。</td><td>空字串</td><td><code>sort-field="name"</code></td></tr>
+                            <tr><td><code>sort-order</code></td><td>設定預設的排序順序。可選值為 <code>asc</code> (升冪) 或 <code>desc</code> (降冪)。</td><td><code>asc</code></td><td><code>sort-order="desc"</code></td></tr>
+                            <tr><td><code>page-length</code></td><td>設定每頁顯示的資料筆數。</td><td><code>10</code></td><td><code>page-length="5"</code></td></tr>
+                            <tr><td><code>filterable</code></td><td>設為 <code>"true"</code> 來啟用本地資料的篩選功能。啟用後，表頭下方會出現篩選輸入框。</td><td><code>false</code></td><td><code>filterable="true"</code></td></tr>
+                            <tr><td><code>pager-format</code></td><td>設定分頁元件的樣式。可選值為 <code>default</code> (下拉選單跳頁) 或 <code>numbers</code> (顯示數字頁碼連結)。</td><td><code>default</code></td><td><code>pager-format="numbers"</code></td></tr>
+                            <tr><td><code>pager-position</code></td><td>設定分頁元件的位置。可選值為 <code>top</code> (表格上方) 或 <code>bottom</code> (表格下方)。</td><td><code>top</code></td><td><code>pager-position="bottom"</code></td></tr>
+                            <tr><td><code>persist-state</code></td><td>設為 <code>"true"</code> 來將排序和分頁筆數的設定保存到 <code>localStorage</code>。需要為元件設定一個唯一的 <code>id</code> 屬性。</td><td><code>false</code></td><td><code>persist-state="true"</code></td></tr>
+                            <tr><td><code>sticky-header</code></td><td>設為 <code>"true"</code> 來固定表格標頭在頂部。</td><td><code>false</code></td><td><code>sticky-header="true"</code></td></tr>
+                            <tr><td><code>resizable</code></td><td>設為 <code>"true"</code> 來啟用欄位寬度拖曳調整功能。</td><td><code>false</code></td><td><code>resizable="true"</code></td></tr>
+                            <tr><td><code>virtual-scroll</code></td><td>設為 <code>"true"</code> 來啟用虛擬捲動模式。適合處理海量資料（如上萬筆），會自動隱藏分頁器並隨捲動動態渲染 DOM。</td><td><code>false</code></td><td><code>virtual-scroll="true"</code></td></tr>
+                            <tr><td><code>item-size</code></td><td>虛擬捲動模式下，每一列資料的預估高度（單位：像素）。</td><td><code>46</code></td><td><code>item-size="50"</code></td></tr>
+                            <tr><td><code>loading</code></td><td>(唯讀/反映) 當元件正在獲取資料時，會自動反映此狀態並顯示載入中遮罩。也可以手動設定來顯示/隱藏遮罩。</td><td><code>false</code></td><td><code>loading="true"</code></td></tr>
+                            <tr><td><code>no-data-text</code></td><td>當表格無資料可顯示時，所呈現的提示文字。</td><td><code>查無資料</code></td><td><code>no-data-text="目前查無資料"</code></td></tr>
+                            <tr><td><code>text-first</code></td><td>自訂「最前頁」按鈕的文字或 HTML。</td><td><code>最前頁</code></td><td><code>text-first="First"</code></td></tr>
+                            <tr><td><code>text-prev</code></td><td>自訂「前一頁」按鈕的文字。</td><td><code>前一頁</code></td><td><code>text-prev="Prev"</code></td></tr>
+                            <tr><td><code>text-next</code></td><td>自訂「下一頁」按鈕的文字。</td><td><code>下一頁</code></td><td><code>text-next="Next"</code></td></tr>
+                            <tr><td><code>text-last</code></td><td>自訂「最後頁」按鈕的文字。</td><td><code>最後頁</code></td><td><code>text-last="Last"</code></td></tr>
+                            <tr><td><code>img-first</code></td><td>設定「最前頁」按鈕的圖檔 URL。設定後會優先於 <code>text-first</code>。</td><td>空字串</td><td><code>img-first="path/to/icon.png"</code></td></tr>
+                            <tr><td><code>img-prev</code></td><td>設定「前一頁」按鈕的圖檔 URL。設定後會優先於 <code>text-prev</code>。</td><td>空字串</td><td><code>img-prev="path/to/icon.png"</code></td></tr>
+                            <tr><td><code>img-next</code></td><td>設定「下一頁」按鈕的圖檔 URL。設定後會優先於 <code>text-next</code>。</td><td>空字串</td><td><code>img-next="path/to/icon.png"</code></td></tr>
+                            <tr><td><code>img-last</code></td><td>設定「最後頁」按鈕的圖檔 URL。設定後會優先於 <code>text-last</code>。</td><td>空字串</td><td><code>img-last="path/to/icon.png"</code></td></tr>
+                            <tr><td><code>text-go-to-page</code></td><td>自訂「跳至頁碼」前的文字。</td><td><code>第</code></td><td><code>text-go-to-page="Go to"</code></td></tr>
+                            <tr><td><code>text-page</code></td><td>自訂「頁碼總數」後的文字。</td><td><code>頁</code></td><td><code>text-page="Page"</code></td></tr>
+                            <tr><td><code>text-of</code></td><td>自訂「頁碼總數」中「/」的文字。</td><td><code>/</code></td><td><code>text-of="of"</code></td></tr>
+                            <tr><td><code>text-total-records-prefix</code></td><td>自訂「總筆數」前的文字。</td><td><code>共 </code></td><td><code>text-total-records-prefix="Total "</code></td></tr>
+                            <tr><td><code>text-total-records-suffix</code></td><td>自訂「總筆數」後的文字。</td><td><code> 筆</code></td><td><code>text-total-records-suffix=" records"</code></td></tr>
+                            <tr><td><code>text-per-page</code></td><td>自訂「每頁筆數」後的文字。</td><td><code>筆/頁</code></td><td><code>text-per-page="per page"</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">JavaScript Properties & Methods</div>
+                <div class="card-body">
+                    <p>這些屬性與方法需要透過 JavaScript 在取得元件實體後進行設定或呼叫，適合用於動態定義或修改表格內容。</p>
+                    <table class="table table-bordered">
+                         <thead><tr><th>屬性/方法</th><th>說明</th><th>範例</th></tr></thead>
+                         <tbody>
+                            <tr><td><code>columns</code></td><td>
+    <strong>(必要)</strong> 用於定義表格所有欄位的陣列。每個欄位都是一個物件，可設定以下屬性：
+    <ul>
+        <li><code>field</code> (字串): <strong>(必要)</strong> 該欄位對應資料來源中的鍵名 (key)。</li>
+        <li><code>title</code> (字串): 該欄位在表格標頭中顯示的文字。</li>
+        <li><code>sortable</code> (布林值): 設定為 <code>true</code> 時，該欄位可進行排序。預設為 <code>false</code>。</li>
+        <li><code>filterable</code> (布林值): 設定為 <code>true</code> 時，該欄位會顯示篩選輸入框。預設為 <code>true</code> (除非全域 <code>filterable</code> 屬性為 <code>false</code>)。</li>
+        <li><code>render</code> (函式): 一個用於自訂儲存格內容的函式。接收當前行的資料物件作為參數，並可回傳 HTML 字串、<code>HTMLElement</code> 或 <code>DocumentFragment</code>。</li>
+        <li><code>isCheckbox</code> (布林值): 設定為 <code>true</code> 時，該欄位將渲染為一個核取方塊，用於行選取。預設為 <code>false</code>。</li>
+        <li><code>cellClass</code> (字串): 可選的 CSS 類別，將會應用於此欄位的每個儲存格 (<code>&lt;td&gt;</code>)。</li>
+        <li><code>headerClass</code> (字串): 可選的 CSS 類別，將會應用於此欄位的標頭 (<code>&lt;th&gt;</code>)。</li>
+    </ul>
+</td><td><pre><code>table.columns = [
+  { field: 'id', title: 'ID', sortable: true },
+  { field: 'name', title: '姓名' }
+];</code></pre></td></tr>
+                            <tr><td><code>setData(data, method, requestData, headers, keepHeaders)</code></td><td>
+    <strong>(Async)</strong> 用於設定表格資料的核心方法。此方法會根據 <code>data-source-type</code> 屬性的值來決定行為。
+    <ul>
+        <li><code>data</code> (陣列 | null):
+            <ul>
+                <li>當 <code>data-source-type</code> 為 <code>'local'</code> (預設) 時，此參數必須是物件陣列。</li>
+                <li>當 <code>data-source-type</code> 為 <code>'server'</code> 時，此參數通常為 <code>null</code>。</li>
+            </ul>
+        </li>
+        <li><code>method</code> (字串): 當 <code>data-source-type</code> 為 <code>'server'</code> 時，指定 HTTP 請求方法。可選值為 <code>'get'</code> (預設) 或 <code>'post'</code>。</li>
+        <li><code>requestData</code> (物件 | null):
+            <ul>
+                <li>用於傳遞基礎請求參數。在 <code>server</code> 模式下，此物件中的鍵值對會與動態產生的分頁、排序、篩選參數合併後發送到伺服器。</li>
+            </ul>
+        </li>
+        <li><code>headers</code> (物件 | null):
+            <ul>
+                <li>僅在 <code>data-source-type="server"</code> 時作用。用於設定自定義 HTTP 請求標頭（如：<code>Authorization</code>）。</li>
+            </ul>
+        </li>
+        <li><code>keepHeaders</code> (布林值): 
+            <ul>
+                <li><strong>(新)</strong> 當設為 <code>true</code> 時，傳入的 <code>headers</code> 會與現有的 Headers 合併，而不是完全取代。若傳入的 <code>headers</code> 為 <code>null</code>，則會完整保留現有的 Headers。</li>
+            </ul>
+        </li>
+    </ul>
+    <p>回傳：一個 <code>Promise</code>，resolve 時帶入最終渲染後的資料陣列。失敗時會 <code>throw</code> 錯誤。</p>
+</td><td><pre><code>// 1. 本地資料 (前端處理)
+table.setData(myLocalArray);
+
+// 2. 伺服器資料 (GET，無初始參數)
+table.setData(null);
+
+// 3. 伺服器資料 (POST 帶有自定義 Header)
+table.setData(null, 'post', { search: 'keyword' }, {
+  'Authorization': 'Bearer YOUR_TOKEN'
+});
+
+// 4. 更新資料但保留現有的 Headers
+table.setData(null, 'get', null, null, true);
+</code></pre></td></tr>
+                            <tr><td><code>updateHeaders(headers)</code></td><td>
+    <strong>(新)</strong> 用於更新伺服器端請求的 Headers。
+    <ul>
+        <li>此方法會將傳入的 <code>headers</code> 物件與現有的 Headers 合併。</li>
+        <li>適合用於更新 Token 等會隨時間變動的認證資訊，而不需要重新設定整個 <code>setData</code> 參數。</li>
+    </ul>
+</td><td><pre><code>table.updateHeaders({
+  'Authorization': 'Bearer NEW_TOKEN'
+});</code></pre></td></tr>
+                            <tr><td><code>Custom Events</code></td><td>
+    <strong>(新)</strong> 元件會拋出以下自定義事件，方便與外部整合：
+    <ul>
+        <li><code>row-click</code>: 點擊資料列時。<code>detail: { rowData, rowId }</code></li>
+        <li><code>selection-change</code>: 勾選狀態改變時。<code>detail: { selectedRows }</code></li>
+        <li><code>page-change</code>: 換頁或改變每頁筆數時。<code>detail: { pageIndex, pageLength }</code></li>
+        <li><code>sort-change</code>: 排序改變時。<code>detail: { field, order }</code></li>
+    </ul>
+</td><td><pre><code>table.addEventListener('row-click', (e) => {
+  console.log('Clicked row:', e.detail.rowData);
+});</code></pre></td></tr>
+                            <tr><td><code>pageLengthList</code></td><td>設定「每頁筆數」下拉選單的選項。是一個數字陣列。</td><td><pre><code>table.pageLengthList = [5, 15, 30];</code></pre></td></tr>
+                            <tr><td><code>onBeforeRender</code></td><td>
+    在表格實際繪製到畫面之前執行的回呼函式。
+    <ul>
+        <li>接收參數：當前頁面的資料陣列。</li>
+        <li>功能：可以直接修改該陣列，或者回傳一個新的陣列作為渲染資料。</li>
+    </ul>
+</td><td><pre><code>table.onBeforeRender = (data) => {
+  // 對當前分頁資料做處理
+  data.forEach(item => item.name += ' (已處理)');
+};</code></pre></td></tr>
+                            <tr><td><code>getSelectedRowsData()</code></td><td>當有欄位設定為 <code>isCheckbox: true</code> 時，此方法可用於獲取所有被勾選的資料列的完整資料物件陣列。</td><td><pre><code>const selected = table.getSelectedRowsData();</code></pre></td></tr>
+                            <tr><td><code>clearState()</code></td><td>當 <code>persist-state</code> 功能啟用時，呼叫此方法可清除此表格在 <code>localStorage</code> 中保存的狀態。</td><td><pre><code>table.clearState();</code></pre></td></tr>
+                         </tbody>
+                    </table>
+                </div>
+            </div>
+        
+            <div class="card mb-4">
+                <div class="card-header">外部樣式設定 (CSS Shadow Parts)</div>
+                <div class="card-body">
+                    <p>此元件支援使用 <code>::part()</code> 偽元素來客製化內部的元件樣式，讓您可以覆寫預設的外觀以符合您的設計需求。這允許您在不修改元件內部 CSS 的透過與專案的全局樣式保持一致。</p>
+                    <p>例如，若要改變表格標頭和分頁容器的樣式：</p>
+                    <pre><code>
+/* 選取 id 為 my-table 的元件 */
+#my-table::part(table-header) {
+    background-color: #6f42c1; /* 改變標頭背景色 */
+    color: white;
+}
+#my-table::part(pager-container-top) {
+    background-color: #f3e5f5; /* 改變上方分頁背景色 */
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+}
+#my-table::part(table) {
+    border: 2px solid #007bff; /* 改變表格邊框 */
+}
+                    </code></pre>
+                    <h3 class="mt-4">所有可用的 <code>part</code> 名稱：</h3>
+                    <ul>
+                        <li><code>pager-container-top</code>: 上方的分頁容器。</li>
+                        <li><code>pager-container-bottom</code>: 下方的分頁容器。</li>
+                        <li><code>table-container</code>: 包覆 <code>&lt;table&gt;</code> 的響應式容器。</li>
+                        <li><code>table</code>: <code>&lt;table&gt;</code> 元素本身。</li>
+                        <li><code>table-header</code>: <code>&lt;thead&gt;</code> (表格標頭) 元素。</li>
+                        <li><code>table-body</code>: <code>&lt;tbody&gt;</code> (表格主體) 元素。</li>
+                        <li><code>table-header-cell</code>: 表格標頭單元格 (<code>&lt;th&gt;</code>)。</li>
+                        <li><code>table-cell</code>: 表格資料單元格 (<code>&lt;td&gt;</code>)。</li>
+                        <li><code>loading-overlay</code>: 載入中遮罩層.</li>
+                        <li><code>loading-spinner</code>: 載入中動畫圖示.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>功能範例</h2>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 1: 基本表格 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">這是元件最基本的用法，透過 <code>setData</code> 傳入本地陣列資料。所有排序、分頁、篩選都在瀏覽器端處理。</p>
+                    <ui-data-table id="table-1"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 2: 伺服器端處理 (GET)</div>
+                <div class="card-body">
+                    <p class="card-text">此表格透過 <code>data-source-type="server"</code> 啟用完整的伺服器端處理。所有排序、分頁、篩選操作都會向 <code>http://localhost:3000/users</code> 發送 GET 請求。請開啟瀏覽器開發者工具的網路 (Network) 頁籤觀察請求。</p>
+                    <div class="alert alert-info">
+                        **注意：** 您需要一個支援 `_page`, `_limit`, `_sort`, `_order` 以及篩選參數的後端 API。<br>
+                        例如，可以使用 <a href="https://github.com/typicode/json-server" target="_blank">json-server</a> 建立模擬 API，並啟動：<code>json-server --watch users.json --routes routes.json</code>。
+                        其中 `routes.json` 內容類似：`{ "/users": "/users?_embed=posts" }`，確保 `X-Total-Count` 標頭能被正確回傳。
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> **GitHub 預覽說明：** 在 GitHub Pages 或無本地伺服器環境下，此範例將會報錯 (Failed to fetch)。
+                    </div>
+                    <ui-data-table id="table-2" data-source-type="server" fetch-data-url="http://localhost:3000/users" filterable="true"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 3: 基本排序 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">表格初始以「產品名稱」降冪排序 (<code>sort-field="name"</code>, <code>sort-order="desc"</code>)。點擊可排序的欄位標頭來改變排序。</p>
+                    <ui-data-table id="table-3" sort-field="name" sort-order="desc"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 4: 欄位篩選 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">設定 <code>filterable="true"</code>。其中「ID」欄位在 <code>columns</code> 中被設為 <code>filterable: false</code>，因此沒有篩選框。試著在其他欄位輸入文字篩選。</p>
+                    <ui-data-table id="table-4" filterable="true" page-length="5"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 5: 數字分頁 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">設定 <code>pager-format="numbers"</code>，分頁元件會顯示為數字頁碼連結。</p>
+                    <ui-data-table id="table-5" page-length="3" pager-format="numbers"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 6: 分頁位置 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">設定 <code>pager-position="bottom"</code>，將分頁元件移動到表格下方。</p>
+                    <ui-data-table id="table-6" page-length="3" pager-position="bottom"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 7: 自訂分頁文字與圖示 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">您可以使用 <code>text-*</code> 屬性來自訂文字或 HTML 圖示，也可以使用 <code>img-*</code> 屬性直接設定圖檔 URL。</p>
+                    <h5>使用 HTML 圖示 (Bootstrap Icons)</h5>
+                    <ui-data-table id="table-7" page-length="3" 
+                        text-first='<i class="bi bi-chevron-double-left"></i>' 
+                        text-prev='<i class="bi bi-chevron-left"></i>' 
+                        text-next='<i class="bi bi-chevron-right"></i>' 
+                        text-last='<i class="bi bi-chevron-double-right"></i>'>
+                    </ui-data-table>
+
+                    <h5 class="mt-4">使用圖檔 URL</h5>
+                    <ui-data-table id="table-7-img" page-length="3" 
+                        img-first="https://cdn-icons-png.flaticon.com/16/271/271220.png"
+                        img-prev="https://cdn-icons-png.flaticon.com/16/271/271228.png"
+                        img-next="https://cdn-icons-png.flaticon.com/16/271/271226.png"
+                        img-last="https://cdn-icons-png.flaticon.com/16/271/271221.png">
+                    </ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 8: 自訂渲染 (Render) (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">使用 <code>render</code> 函式自訂欄位內容。「狀態」被渲染成彩色徽章，「操作」則是一個按鈕。</p>
+                    <ui-data-table id="table-8" page-length="4"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 9: 勾選功能 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">啟用勾選欄位後，可透過 <code>getSelectedRowsData()</code> 方法獲取選中的資料。</p>
+                    <ui-data-table id="table-9" page-length="5"></ui-data-table>
+                    <button id="show-selected-btn-9" class="btn btn-primary mt-3">獲取選中項目</button>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 10: 狀態保存 (前端處理)</div>
+                <div class="card-body">
+                    <p class="card-text">此表格設定了 <code>persist-state="true"</code>。改變排序或每頁筆數，然後**重新整理頁面**，您的設定將會被保留。點擊下方按鈕可清除已保存的狀態。</p>
+                    <ui-data-table id="table-10" page-length="5" persist-state="true"></ui-data-table>
+                    <button id="reset-state-btn-10" class="btn btn-danger mt-3">清除 #table-10 的已存狀態</button>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 11: 伺服器端處理 (POST + 篩選)</div>
+                <div class="card-body">
+                    <p class="card-text">此範例演示如何透過 POST 請求初始化伺服器端表格，並帶有基礎篩選條件。隨後所有排序、分頁、篩選的操作，其參數都會與原始的 POST body 合併後，透過 POST 方法發送。</p>
+                    <div class="alert alert-info">
+                        **注意：** <code>json-server</code> 預設不支援根據 POST body 中的篩選參數進行過濾。<br>
+                        這個範例主要演示元件將會發送帶有 JSON body 的 POST 請求。若要實現伺服器端篩選，你需要一個實際的後端 API 來解析 POST body 中的篩選參數。
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> **GitHub 預覽說明：** 在 GitHub Pages 或無本地伺服器環境下，此範例將會報錯 (Failed to fetch)。
+                    </div>
+                    <ui-data-table id="table-11" data-source-type="server" fetch-data-url="http://localhost:3000/users" filterable="true"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 12: 自定義 Header 與 Async/Await (伺服器端)</div>
+                <div class="card-body">
+                    <p class="card-text">透過 <code>setData</code> 的第四個參數傳入自定義標頭 (如 <code>Authorization</code>)，並使用 <code>await</code> 等待資料載入完成。</p>
+                    <div class="alert alert-info">
+                        開啟控制台 (Console) 即可看到 <code>setData</code> 完成後回傳的 Promise 結果。
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> **GitHub 預覽說明：** 在 GitHub Pages 或無本地伺服器環境下，此範例將會報錯 (Failed to fetch)。
+                    </div>
+                    <ui-data-table id="table-12" data-source-type="server" fetch-data-url="http://localhost:3000/users"></ui-data-table>
+                    <button type="button" class="btn btn-primary mt-3" id="reload-btn-12">使用 Async/Await 重新載入</button>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 13: 固定表頭與欄位調整 (Sticky Header & Resizable)</div>
+                <div class="card-body">
+                    <p class="card-text">啟用 <code>sticky-header="true"</code> 與 <code>resizable="true"</code>。表頭將會固定在頂部，且可以拖曳表頭邊界改變寬度。</p>
+                    <ui-data-table id="table-13" sticky-header="true" resizable="true" style="height: 300px; border: 1px solid #dee2e6;"></ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 14: 自訂無資料插槽 (Empty Slot)</div>
+                <div class="card-body">
+                    <p class="card-text">透過 <code>slot="empty"</code> 插入自訂的 HTML 結構，當資料為空時會自動顯示。</p>
+                    <ui-data-table id="table-14">
+                        <div slot="empty" style="padding: 3rem; text-align: center;">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="mt-3 text-secondary">目前的盒子是空的，請稍後再試。</p>
+                            <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">重新整理</button>
+                        </div>
+                    </ui-data-table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 15: 自定義事件監聽 (Events)</div>
+                <div class="card-body">
+                    <p class="card-text">監聽 <code>row-click</code>, <code>selection-change</code> 等事件，並將資訊顯示在下方控制台。</p>
+                    <ui-data-table id="table-15"></ui-data-table>
+                    <div class="mt-3">
+                        <strong>事件記錄：</strong>
+                        <pre id="event-log" style="max-height: 200px; background: #f8f9fa; color: #333; border: 1px solid #ddd; padding: 10px; border-radius: 4px; overflow-y: auto;"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">範例 16: 虛擬捲動 (Virtual Scrolling - 10,000 筆資料)</div>
+                <div class="card-body">
+                    <p class="card-text">啟用 <code>virtual-scroll="true"</code>。這裡生成了 10,000 筆本地資料，即使資料量極大，捲動依然流暢，因為 DOM 中永遠只維持少量的資料列。</p>
+                    <ui-data-table id="table-16" virtual-scroll="true" sticky-header="true" style="height: 400px; border: 1px solid #dee2e6;"></ui-data-table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        customElements.whenDefined('ui-data-table').then(() => {
+            const sampleData = [
+                { id: 1, name: '筆記型電腦', price: 45000, status: 'in-stock' }, { id: 2, name: '智慧型手機', price: 28000, status: 'in-stock' },
+                { id: 3, name: '無線耳機', price: 3500, status: 'low-stock' }, { id: 4, name: '智慧手錶', price: 7000, status: 'in-stock' },
+                { id: 5, name: '行動電源', price: 1200, status: 'in-stock' }, { id: 6, name: '平板電腦', price: 15000, status: 'low-stock' },
+                { id: 7, name: '藍牙喇叭', price: 2800, status: 'in-stock' }, { id: 8, name: '4K 螢幕', price: 9000, status: 'in-stock' },
+                { id: 9, name: '機械鍵盤', price: 4000, status: 'low-stock' }, { id: 10, name: '電競滑鼠', price: 2500, status: 'in-stock' },
+                { id: 11, name: 'Webcam', price: 1800, status: 'in-stock' }, { id: 12, name: '麥克風', price: 3200, status: 'low-stock' }
+            ];
+            // Generate more sample data for testing pagination
+            for (let i = 13; i <= 250; i++) {
+                const statusOptions = ['in-stock', 'low-stock'];
+                const randomStatus = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+                const randomPrice = Math.floor(Math.random() * (50000 - 1000 + 1)) + 1000; // Price between 1000 and 50000
+                sampleData.push({ id: i, name: `產品名稱 ${i}`, price: randomPrice, status: randomStatus });
+            }
+
+            // 範例 1: 基本表格 (前端處理)
+            document.getElementById('table-1').columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱' }, { field: 'price', title: '價格' } ];
+            document.getElementById('table-1').setData(sampleData.slice(0, 5));
+
+            // 範例 2: 伺服器端處理 (GET)
+            const table2 = document.getElementById('table-2');
+            table2.columns = [ { field: 'id', title: '使用者 ID', sortable: true }, { field: 'name', title: '姓名', sortable: true }, { field: 'email', title: '電子郵件' }, { field: 'status', title: '狀態', sortable: true } ];
+            table2.setData(null);
+
+            // 範例 3: 基本排序 (前端處理)
+            document.getElementById('table-3').columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱', sortable: true }, { field: 'price', title: '價格', sortable: true }, { field: 'status', title: '狀態', sortable: true } ];
+            document.getElementById('table-3').setData(sampleData);
+
+            // 範例 4: 欄位篩選 (前端處理)
+            document.getElementById('table-4').columns = [ { field: 'id', title: 'ID', filterable: false, sortable: true }, { field: 'name', title: '產品名稱' }, { field: 'status', title: '狀態' } ];
+            document.getElementById('table-4').setData(sampleData);
+
+            // 範例 5: 數字分頁 (前端處理)
+            document.getElementById('table-5').columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱' }, { field: 'status', title: '狀態' } ];
+            document.getElementById('table-5').setData(sampleData);
+
+            // 範例 6: 分頁位置 (前端處理)
+            document.getElementById('table-6').columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱' }, { field: 'price', title: '價格' } ];
+            document.getElementById('table-6').setData(sampleData);
+
+            // 範例 7: 自訂分頁文字 (前端處理)
+            document.getElementById('table-7').columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱' } ];
+            document.getElementById('table-7').setData(sampleData);
+
+            document.getElementById('table-7-img').columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱' } ];
+            document.getElementById('table-7-img').setData(sampleData);
+
+            // 範例 8: 自訂渲染 (Render) (前端處理)
+            document.getElementById('table-8').columns = [
+                { field: 'name', title: '產品名稱' },
+                { field: 'price', title: '價格', render: (row) => `$${row.price.toLocaleString()}` },
+                { field: 'status', title: '狀態', render: (row) => `<span class="badge ${row.status === 'in-stock' ? 'bg-success' : 'bg-warning'}">${row.status === 'in-stock' ? '庫存充足' : '庫存偏低'}</span>` },
+                { title: '操作', render: (row) => `<button type="button" class="btn btn-sm btn-primary" onclick="alert('檢視商品: ${row.name}')"><i class="bi bi-eye"></i>顯示</button>` }
+            ];
+            document.getElementById('table-8').setData(sampleData);
+
+            // 範例 9: 勾選功能 (前端處理)
+            const table9 = document.getElementById('table-9');
+            table9.columns = [ { isCheckbox: true }, { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱' }, { field: 'status', title: '狀態' } ];
+            table9.setData(sampleData);
+            document.getElementById('show-selected-btn-9').addEventListener('click', () => {
+                const selectedData = table9.getSelectedRowsData();
+                alert(`已選取 ${selectedData.length} 個項目：\n\n${selectedData.map(item => item.name).join('\n')}`);
+            });
+            
+            // 範例 10: 狀態保存 (前端處理)
+            const table10 = document.getElementById('table-10');
+            table10.columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '產品名稱', sortable: true }, { field: 'price', title: '價格', sortable: true } ];
+            table10.pageLengthList = [3, 5, 10];
+            table10.setData(sampleData);
+            document.getElementById('reset-state-btn-10').addEventListener('click', () => { table10.clearState(); alert('已清除狀態，請重新整理頁面。'); });
+            
+            // 範例 11: 伺服器端處理 (POST + 篩選)
+            const table11 = document.getElementById('table-11');
+            table11.columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '姓名', sortable: true }, { field: 'email', title: '電子郵件' }, { field: 'status', title: '狀態', sortable: true } ];
+            table11.setData(null, 'post', { status: 'active' }); // 初始發送 POST 請求，帶篩選條件
+
+            // 範例 12: 自定義 Header 與 Async/Await (伺服器端)
+            const table12 = document.getElementById('table-12');
+            table12.columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '姓名' }, { field: 'email', title: '電子郵件' } ];
+            
+            async function loadTable12() {
+                try {
+                    console.log('Table 12: 開始載入...');
+                    const data = await table12.setData(null, 'get', {}, {
+                        'Authorization': 'Bearer MOCK_TOKEN_12345',
+                        'X-Custom-Header': 'CustomValue'
+                    });
+                    console.log('Table 12: 載入成功，資料筆數:', data.length);
+                } catch (err) {
+                    console.error('Table 12: 載入失敗:', err);
+                }
+            }
+            
+            loadTable12();
+            document.getElementById('reload-btn-12').addEventListener('click', loadTable12);
+
+            // 範例 13: 固定表頭與欄位調整
+            const table13 = document.getElementById('table-13');
+            table13.columns = [ { field: 'id', title: 'ID', sortable: true }, { field: 'name', title: '產品名稱', sortable: true }, { field: 'price', title: '價格', sortable: true }, { field: 'status', title: '狀態' } ];
+            table13.setData(sampleData);
+
+            // 範例 14: 自訂無資料插槽
+            const table14 = document.getElementById('table-14');
+            table14.columns = [ { field: 'id', title: 'ID' }, { field: 'name', title: '名稱' } ];
+            table14.setData([]);
+
+            // 範例 15: 自定義事件
+            const table15 = document.getElementById('table-15');
+            const log = document.getElementById('event-log');
+            const addLog = (msg) => {
+                const time = new Date().toLocaleTimeString();
+                log.textContent = `[${time}] ${msg}\n` + log.textContent;
+            };
+
+            table15.columns = [ { isCheckbox: true }, { field: 'id', title: 'ID', sortable: true }, { field: 'name', title: '姓名', sortable: true } ];
+            table15.setData(sampleData.slice(0, 10));
+
+            table15.addEventListener('row-click', (e) => addLog(`點擊列: ${e.detail.rowData.name}`));
+            table15.addEventListener('selection-change', (e) => addLog(`勾選改變: 已選取 ${e.detail.selectedRows.length} 筆`));
+            table15.addEventListener('page-change', (e) => addLog(`分頁改變: 第 ${e.detail.pageIndex} 頁`));
+            table15.addEventListener('sort-change', (e) => addLog(`排序改變: ${e.detail.field} (${e.detail.order})`));
+
+            // 範例 16: 虛擬捲動
+            const table16 = document.getElementById('table-16');
+            const bigData = [];
+            for (let i = 1; i <= 10000; i++) {
+                bigData.push({ id: i, name: `海量資料項目 ${i}`, price: Math.floor(Math.random() * 10000), status: i % 2 === 0 ? 'in-stock' : 'low-stock' });
+            }
+            table16.columns = [ { field: 'id', title: 'ID', sortable: true }, { field: 'name', title: '名稱', sortable: true }, { field: 'price', title: '價格', sortable: true } ];
+            table16.setData(bigData);
+        });
+    </script>
+</body>
+</html>
